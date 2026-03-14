@@ -403,12 +403,13 @@
 
 <div class="modal-overlay" id="modal-vinculo">
   <div class="modal">
-    <div class="modal-title">Vincular empresa à obrigação</div>
+    <div class="modal-title">Vincular empresas à obrigação</div>
     <div class="form-group"><label class="form-label">Obrigação *</label>
-      <select class="form-select" id="vinculo-obrigacao"></select>
+      <select class="form-select" id="vinculo-obrigacao" onchange="atualizarCheckboxEmpresas()"></select>
     </div>
-    <div class="form-group"><label class="form-label">Empresa *</label>
-      <select class="form-select" id="vinculo-empresa"></select>
+    <div class="form-group">
+      <label class="form-label">Empresas *</label>
+      <div id="vinculo-empresas-checks" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-top:2px"></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="fecharModal('modal-vinculo')">Cancelar</button>
@@ -436,7 +437,7 @@
 // CONFIGURAÇÃO — substitua com suas credenciais do Supabase
 // ============================================================
 const SUPABASE_URL = 'https://fwffnlyolhktykfcfllb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_URFLPi6ItFbaSv_wL207bQ_Txnj12Wp';
+const SUPABASE_KEY = 'SUA_CHAVE_ANON_AQUI';
 // ============================================================
 
 const { createClient } = supabase;
@@ -746,20 +747,41 @@ async function renderVinculos() {
 async function abrirModalVinculo() {
   await carregarEmpresas();
   await carregarObrigacoes();
-  const selEmp = document.getElementById('vinculo-empresa');
   const selOb = document.getElementById('vinculo-obrigacao');
   selOb.innerHTML = obrigacoesCache.filter(o=>o.ativa).map(o => `<option value="${o.id}">${o.nome}</option>`).join('');
-  selEmp.innerHTML = empresasCache.filter(e=>e.ativo).map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
+  await atualizarCheckboxEmpresas();
   abrirModal('modal-vinculo');
 }
 
-async function salvarVinculo() {
-  const empresa_id = document.getElementById('vinculo-empresa').value;
+async function atualizarCheckboxEmpresas() {
   const obrigacao_id = document.getElementById('vinculo-obrigacao').value;
-  const { data: existe } = await db.from('empresa_obrigacao').select('id').eq('empresa_id', empresa_id).eq('obrigacao_id', obrigacao_id);
-  if (existe && existe.length) { toast('Vínculo já existe!', 'error'); return; }
-  await db.from('empresa_obrigacao').insert({ empresa_id, obrigacao_id });
-  toast('Vínculo criado!');
+  const container = document.getElementById('vinculo-empresas-checks');
+  if (!obrigacao_id) { container.innerHTML = ''; return; }
+  const { data: jaVinculadas } = await db.from('empresa_obrigacao').select('empresa_id').eq('obrigacao_id', obrigacao_id);
+  const vinculadasIds = (jaVinculadas || []).map(v => v.empresa_id);
+  const empresasAtivas = empresasCache.filter(e => e.ativo);
+  if (!empresasAtivas.length) { container.innerHTML = '<p style="font-size:13px;color:var(--text3)">Nenhuma empresa cadastrada.</p>'; return; }
+  container.innerHTML = empresasAtivas.map(e => {
+    const jatem = vinculadasIds.includes(e.id);
+    return `<label style="display:flex;align-items:center;gap:10px;cursor:${jatem?'default':'pointer'};opacity:${jatem?'0.5':'1'}">
+      <input type="checkbox" value="${e.id}" ${jatem?'checked disabled':''} style="width:15px;height:15px;accent-color:var(--accent);cursor:${jatem?'default':'pointer'}">
+      <span style="font-size:13px;color:var(--text)">${e.nome}</span>
+      ${jatem?'<span class="badge badge-gray" style="margin-left:auto;font-size:10px">já vinculada</span>':''}
+    </label>`;
+  }).join('');
+}
+
+async function salvarVinculo() {
+  const obrigacao_id = document.getElementById('vinculo-obrigacao').value;
+  const checks = document.querySelectorAll('#vinculo-empresas-checks input[type=checkbox]:checked:not(:disabled)');
+  if (!checks.length) { toast('Selecione ao menos uma empresa.', 'error'); return; }
+  let criados = 0;
+  for (const ch of checks) {
+    const empresa_id = ch.value;
+    await db.from('empresa_obrigacao').insert({ empresa_id, obrigacao_id });
+    criados++;
+  }
+  toast(`${criados} vínculo(s) criado(s)!`);
   fecharModal('modal-vinculo');
   renderVinculos();
 }
