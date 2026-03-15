@@ -203,6 +203,44 @@
     .summary-grid { grid-template-columns: repeat(2,1fr); }
   }
 
+  @media (max-width: 600px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .page { padding: 16px; }
+    .topbar { padding: 0 16px; }
+    .topbar-title { font-size: 13px; }
+    .summary-grid { grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 16px; }
+    .summary-card { padding: 12px 14px; }
+    .summary-card .value { font-size: 22px; }
+    .mes-nav { gap: 10px; margin-bottom: 16px; }
+    .mes-nav .mes-label { font-size: 16px; min-width: 140px; }
+    .filters { gap: 6px; }
+    .filter-select, .filter-input { font-size: 11px; padding: 6px 8px; }
+    .table-wrap { overflow-x: auto; }
+    table { min-width: 500px; }
+    th, td { padding: 10px 10px; font-size: 12px; }
+    .btn-sm { padding: 4px 8px; font-size: 11px; }
+    .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .modal { padding: 20px 16px; }
+    .form-row { grid-template-columns: 1fr; }
+    .login-box { padding: 28px 20px; margin: 16px; }
+    .bottomnav {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--bg2); border-top: 1px solid var(--border);
+      z-index: 100; padding: 8px 0;
+    }
+    .bottomnav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 6px 4px; cursor: pointer; color: var(--text3);
+      font-size: 10px; font-family: 'Sora', sans-serif; border: none;
+      background: transparent; transition: color 0.15s;
+    }
+    .bottomnav-item.active { color: var(--accent); }
+    .bottomnav-item svg { width: 20px; height: 20px; }
+    .main { padding-bottom: 70px; }
+    .topbar-actions .btn-ghost:not(:last-child) { display: none; }
+  }
+
   /* LOGIN */
   .login-screen {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -434,6 +472,26 @@
     </div>
   </div>
 </div>
+
+<!-- BOTTOM NAV MOBILE -->
+<nav class="bottomnav" id="bottomnav" style="display:none">
+  <button class="bottomnav-item active" onclick="showPageMobile('painel', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Painel
+  </button>
+  <button class="bottomnav-item" onclick="showPageMobile('empresas', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Empresas
+  </button>
+  <button class="bottomnav-item" onclick="showPageMobile('obrigacoes', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Obrigações
+  </button>
+  <button class="bottomnav-item" onclick="showPageMobile('vinculos', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+    Vínculos
+  </button>
+</nav>
 
 <div class="toast-container" id="toast-container"></div>
 
@@ -1008,8 +1066,29 @@ async function fazerLogout() {
 function mostrarApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-layout').style.display = 'flex';
+  if (window.innerWidth <= 600) {
+    document.getElementById('bottomnav').style.display = 'flex';
+  }
   init();
 }
+
+function showPageMobile(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.bottomnav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  el.classList.add('active');
+  const titles = { painel: 'Painel do Mês', empresas: 'Empresas', obrigacoes: 'Obrigações', vinculos: 'Vínculos' };
+  document.getElementById('topbar-title').textContent = titles[page];
+  if (page === 'painel') renderPainel();
+  if (page === 'empresas') renderEmpresas();
+  if (page === 'obrigacoes') renderObrigacoes();
+  if (page === 'vinculos') renderVinculos();
+}
+
+window.addEventListener('resize', () => {
+  const nav = document.getElementById('bottomnav');
+  if (nav) nav.style.display = window.innerWidth <= 600 ? 'flex' : 'none';
+});
 
 // ============================================================
 // INICIALIZAÇÃO
