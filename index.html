@@ -947,6 +947,7 @@ async function renderPainel() {
     const sv = statusVencimento(l.data_vencimento, l.status);
     const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
     const dv = new Date(l.data_vencimento + 'T12:00:00');
+    const diff = Math.floor((dv - hoje2) / 86400000);
     const atrasado = l.status === 'pendente' && dv < hoje2;
     const statusReal = atrasado ? 'atrasado' : l.status;
 
@@ -955,22 +956,33 @@ async function renderPainel() {
     else if (sv === 'hoje') vencClass = 'venc-hoje';
     else if (sv === 'proximo') vencClass = 'venc-proximo';
 
+    let diasTexto = '\u2014';
+    let diasClass = 'venc-normal';
+    if (l.status !== 'concluido') {
+      if (diff < 0) { diasTexto = Math.abs(diff) + 'd atraso'; diasClass = 'venc-atrasado'; }
+      else if (diff === 0) { diasTexto = 'Hoje!'; diasClass = 'venc-hoje'; }
+      else if (diff <= 3) { diasTexto = diff + 'd restantes'; diasClass = 'venc-proximo'; }
+      else { diasTexto = diff + 'd restantes'; diasClass = 'venc-normal'; }
+    }
+
     let badge = '';
-    if (statusReal === 'concluido') badge = '<span class="badge badge-green">Concluído</span>';
+    if (statusReal === 'concluido') badge = '<span class="badge badge-green">Conclu\u00eddo</span>';
     else if (statusReal === 'atrasado') badge = '<span class="badge badge-red">Atrasado</span>';
     else badge = '<span class="badge badge-amber">Pendente</span>';
 
-    return `<tr>
-      <td class="empresa-name">${l.empresas?.nome || '—'}</td>
-      <td>${l.obrigacoes?.nome || '—'}</td>
-      <td class="${vencClass}">${formatarData(l.data_vencimento)}</td>
-      <td>${badge}</td>
-      <td><div class="actions-cell">
-        ${l.status !== 'concluido' ? `<button class="btn btn-success btn-sm" onclick="concluirLancamento('${l.id}')">✓ Concluir</button>` : `<button class="btn btn-ghost btn-sm" onclick="reabrirLancamento('${l.id}')">Reabrir</button>`}
-        <button class="btn btn-ghost btn-sm" onclick="abrirObs('${l.id}','${(l.observacao||'').replace(/'/g,"\\'")}')">Obs</button>
-      </div></td>
-    </tr>`;
+    return '<tr>' +
+      '<td class="empresa-name">' + (l.empresas?.nome || '\u2014') + '</td>' +
+      '<td>' + (l.obrigacoes?.nome || '\u2014') + '</td>' +
+      '<td class="' + vencClass + '">' + formatarData(l.data_vencimento) + '</td>' +
+      '<td class="' + diasClass + '" style="font-size:12px;font-weight:500">' + diasTexto + '</td>' +
+      '<td>' + badge + '</td>' +
+      '<td><div class="actions-cell">' +
+      (l.status !== 'concluido' ? '<button class="btn btn-success btn-sm" onclick="concluirLancamento(\'' + l.id + '\')">\u2713 Concluir</button>' : '<button class="btn btn-ghost btn-sm" onclick="reabrirLancamento(\'' + l.id + '\')">Reabrir</button>') +
+      '<button class="btn btn-ghost btn-sm" onclick="abrirObs(\'' + l.id + '\',\'' + (l.observacao||'').replace(/'/g,"\\'") + '\')">Obs</button>' +
+      '</div></td>' +
+      '</tr>';
   }).join('');
+}
 }
 
 async function concluirLancamento(id) {
