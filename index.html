@@ -337,6 +337,9 @@
         <select class="filter-select" id="filtro-empresa" onchange="renderPainel()">
           <option value="">Todas as empresas</option>
         </select>
+        <input type="date" class="filter-input" id="filtro-data-ini" onchange="renderPainel()" placeholder="Data inicial" style="max-width:160px">
+        <input type="date" class="filter-input" id="filtro-data-fim" onchange="renderPainel()" placeholder="Data final" style="max-width:160px">
+        <button class="btn btn-ghost btn-sm" onclick="limparFiltros()">Limpar filtros</button>
       </div>
       <div class="table-wrap">
         <table>
@@ -344,6 +347,7 @@
             <th>Empresa</th>
             <th>Obrigação</th>
             <th>Vencimento</th>
+            <th>Dias</th>
             <th>Status</th>
             <th>Ações</th>
           </tr></thead>
