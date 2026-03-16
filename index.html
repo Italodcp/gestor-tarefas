@@ -983,7 +983,6 @@ async function renderPainel() {
       '</tr>';
   }).join('');
 }
-}
 
 async function concluirLancamento(id) {
   await db.from('lancamentos').update({ status: 'concluido', data_conclusao: new Date().toISOString().split('T')[0] }).eq('id', id);
