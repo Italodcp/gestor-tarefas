@@ -337,9 +337,10 @@
         <select class="filter-select" id="filtro-empresa" onchange="renderPainel()">
           <option value="">Todas as empresas</option>
         </select>
-        <input type="date" class="filter-input" id="filtro-data-ini" onchange="renderPainel()" placeholder="Data inicial" style="max-width:160px">
-        <input type="date" class="filter-input" id="filtro-data-fim" onchange="renderPainel()" placeholder="Data final" style="max-width:160px">
-        <button class="btn btn-ghost btn-sm" onclick="limparFiltros()">Limpar filtros</button>
+        <input type="date" class="filter-input" id="filtro-data-ini" style="max-width:160px">
+        <input type="date" class="filter-input" id="filtro-data-fim" style="max-width:160px">
+        <button class="btn btn-primary btn-sm" onclick="renderPainel()">Aplicar</button>
+        <button class="btn btn-ghost btn-sm" onclick="limparFiltros()">Limpar</button>
       </div>
       <div class="table-wrap">
         <table>
